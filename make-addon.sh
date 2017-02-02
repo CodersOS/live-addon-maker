@@ -121,7 +121,7 @@ EOF
 if [ -n "$before_command" ]
 then
   log "Executing -b option: $before_command"
-  chroot "$root" $before_command
+  chroot "$root" bash -c "$before_command"
   [ "$?" == 0 ] || error "-b failed."
 fi
 
