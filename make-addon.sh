@@ -51,7 +51,8 @@ for dir in "$data" "$iso_mount" "$fs_mount"; do
   mkdir "$dir" || error "$dir exists."
 done
 
-log "Mounting $iso to $iso_mount"
+log "Mounting $iso"
+log "      to $iso_mount"
 mount "$iso" "$iso_mount" || \
   error "Could not mount iso."
 
@@ -61,7 +62,8 @@ relative_filesystem_squashfs="`( cd \"$iso_mount\" && find -name filesystem.squa
   error "did not find filesystem.squashfs in $iso_mount"
 fs_squash="$iso_mount/$relative_filesystem_squashfs"
 
-log "Mounting $fs_squash to $fs_mount"
+log "Mounting $fs_squash"
+log "      to $fs_mount"
 mount "$fs_squash" "$fs_mount" || \
   error "Could not mount filesystem."
 
@@ -69,7 +71,8 @@ log "Mounting aufs to $root"
 mount -t aufs -o "br=$data:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
-log "Executing in $root $@"
+log "Executing in $root:"
+log " $@"
 chroot "$root" "$@" || \
   error "Error in command."
 
