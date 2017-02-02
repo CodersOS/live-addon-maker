@@ -43,12 +43,13 @@ log "Deriving parameters."
 root="/tmp/`basename \"$script\"`-`basename \"$output\"`-`date +%N`"
 iso_mount="${root}-iso"
 fs_mount="${root}-fs"
+host_copy="${root}-host"
 data="${root}-data"
 type="${output##*.}"
 
 log "Creating directories."
 mkdir -p "$root"
-for dir in "$data" "$iso_mount" "$fs_mount"; do
+for dir in "$data" "$iso_mount" "$fs_mount" "$host_copy"; do
   mkdir "$dir" || error "$dir exists."
 done
 
@@ -67,6 +68,16 @@ log "Mounting $fs_squash"
 log "      to $fs_mount"
 mount "$fs_squash" "$fs_mount" || \
   error "Could not mount filesystem."
+
+log "Copying environment from host."
+# see https://github.com/fossasia/meilix/blob/master/build.sh
+mkdir "$host_copy/sys" "host_copy/proc" "$host_copy/dev" "host_copy/etc" || \
+  error "Could not create sub directories for host."
+cp -vr /etc/resolvconf "$host_copy/etc/resolvconf" || \
+  error "Could not copy resolvconf"
+sudo mount --rbind "/sys" "$host_copy/sys" || error "Could not mount sys."
+sudo mount --rbind "/dev" "$host_copy/dev" || error "Could not mount dev."
+sudo mount -t proc none "$host_copy/proc"  || error "Could not mount proc."
 
 log "Mounting aufs to $root"
 mount -t aufs -o "br=$data:$fs_mount=rr" none "$root/" || \
