@@ -101,8 +101,8 @@ then
   mkdir "$ext_mount" || \
     error "$ext_mount exists."
   mount "$output" "$ext_mount"
-  mv -t "$ext_mount" "$data"
-  ummount "$ext_mount"
+  mv "$data/"* "$ext_mount"
+  umount "$ext_mount"
 else
   error "Unrecognized type \"$type\"."
 fi
