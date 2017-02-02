@@ -3,16 +3,19 @@
 help() {
   echo "
 
-   make-addon.sh ISO OUTPUT-FILE COMMAND [ARG]...
+   make-addon.sh ISO OUTPUT-FILE [-b BEFORE-COMMAND] COMMAND [ARG]...
 
    - ISO
      is the iso image to create the addon for.
    - OUTPUT-FILE
      Is the file to which the addon should be saved.
      It must have either ending 'ext2' or 'squashfs'.
+   - BEFORE-COMMAND
+     This command is run and the changes are note recorded in the OUTPUT-FILE.
    - COMMAND
      is a command to run. It will be executed as root.
-     It can have optional arguments ARG
+     It can have optional arguments ARG.
+     The changes made by this command are recorded and written to OUTPUT-FILE.
   "
 }
 
@@ -30,7 +33,16 @@ iso="$1"
 shift
 output="$1"
 shift
+if [ "$1" == "-b" ]
+then
+  shift
+  before_command="$1"
+  shift
+else
+  before_command=""
+fi
 script="$1"
+
 
 log "verifying parameters"
 if [ -z "$iso" ] || [ -z "$script" ] || [ -z "$output" ]
@@ -72,19 +84,25 @@ mount "$fs_squash" "$fs_mount" || \
 log "Copying environment from host."
 # see https://github.com/fossasia/meilix/blob/master/build.sh
 # and https://help.ubuntu.com/community/LiveCDCustomizationFromScratch
-mkdir "$host_copy/sys" "$host_copy/proc" "$host_copy/dev" "$host_copy/etc" || \
+mkdir "$host_copy/etc" || \
   error "Could not create sub directories for host."
 cp -vr "/etc/resolvconf" "$host_copy/etc/resolvconf" || \
   error "Could not copy resolvconf"
 cp "/etc/resolv.conf" "$host_copy/etc/resolv.conf" || \
   error "Could not copy resolv.conf"
 cp "/etc/hosts" "$host_copy/hosts"
-sudo mount --rbind "/sys" "$host_copy/sys" || error "Could not mount sys."
-sudo mount --rbind "/dev" "$host_copy/dev" || error "Could not mount dev."
-sudo mount -t proc none "$host_copy/proc"  || error "Could not mount proc."
+mount_special_file_systems() {
+  mkdir "$1/sys" "$1/proc" "$1/dev" || \
+    error "Could not create sub directories for $1."
+  sudo mount --rbind "/sys" "$1/sys" || error "Could not mount sys."
+  sudo mount --rbind "/dev" "$1/dev" || error "Could not mount dev."
+  sudo mount -t proc none "$1/proc"  || error "Could not mount proc."
+}
+mount_special_file_systems "$host_copy"
+#mount_special_file_systems "$data"
 
-log "Mounting aufs to $root"
-mount -t aufs -o "br=$data:$host_copy:$fs_mount=rr" none "$root/" || \
+log "Mounting aufs for -b option to $root"
+mount -t aufs -o "br=$host_copy:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
 log "Setting up change-root environment"
@@ -100,27 +118,26 @@ chroot "$root" <<EOF
 EOF
 [ "$?" == 0 ] || error "Could not setup changeroot environment."
 
+if [ -n "$before_command" ]
+then
+  log "Executing -b option: $before_command"
+  chroot "$root" $before_command
+  [ "$?" == 0 ] || error "-b failed."
+fi
+
+log "Mounting aufs for recording to $root"
+umount "$root"
+mount -t aufs -o "br=$data:$host_copy=ro:$fs_mount=rr" none "$root/" || \
+  error "Could not mount."
+
 log "Executing in $root:"
 log "  $@"
 chroot "$root" "$@" || \
   error "Error in command."
 
-log "Cleaning up change-root environment"
-chroot "$root" <<EOF
-  set -e
-  # Reverting earlier initctl override. JM 2012-0604
-  rm /sbin/initctl
-  dpkg-divert --rename --remove /sbin/initctl
-EOF
-[ "$?" == 0 ] || error "Could not clean up change root environment."
-for file in "$data/sbin/initctl" "$data/var/lib/dpkg/diversions" "$data/var/lib/dpkg/diversions-old"; do
-  rm -f "$file"
-done
-
-
 log "Unmounting"
-for dir in "$root" "$fs_mount" "$iso_mount" "$host_copy/sys" "$host_copy/dev" "$host_copy/proc"; do
-  umount "$dir"
+for dir in "$root" "$fs_mount" "$iso_mount" "$host_copy/sys" "$host_copy/dev" "$host_copy/proc" "$data/proc" "$data/dev" "$data/sys"; do
+  umount "$dir" &&  rm -rf "$dir"
 done
 
 log "Result in $data: "`ls "$data"`
@@ -135,6 +152,7 @@ then
     error "Could not squash to $output"
 elif [ "$type" == "ext2" ]
 then
+  umount "$output"
   bytes="`du -s --block-size=1 | grep -oE '^\S+'`"
   bytes="$((bytes + 100000))"
   log "Bytes: $bytes"
