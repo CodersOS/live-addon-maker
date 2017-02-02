@@ -116,7 +116,7 @@ chroot "$root" <<EOF
   dpkg-divert --rename --remove /sbin/initctl
 EOF
 [ "$?" == 0 ] || error "Could not clean up change root environment."
-for file in "$data/sbin/initctl" "$data/var/lib/dpkg/diversions"; do
+for file in "$data/sbin/initctl" "$data/var/lib/dpkg/diversions" "$data/var/lib/dpkg/diversions-old"; do
   rm -f "$file"
 done
 
