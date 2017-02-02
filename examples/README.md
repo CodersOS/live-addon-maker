@@ -7,7 +7,10 @@ Some files are too big so they are stored somewhere else.
 
 Download them:
 
-- [idle-python3.5](idle-python3.5) - This is the IDLE Python Shell for Python 3.5
+- [idle-python3.5](idle-python3.5.squashfs?raw=true) - This is the IDLE Python Shell for Python 3.5.
+- [arduino-1.8.1-linux64](https://github.com/CodersOS/live-addon-maker/releases/download/arduino-1/arduino-1.8.1-linux64.squashfs) - This is the Arduino development environment.
+- [flash](flash.squashfs?raw=true) - The installed `flashplugin-installer` which is required to view flash websites.
+
 
 
 Generate
