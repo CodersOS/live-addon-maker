@@ -89,7 +89,8 @@ then
   if [ -z"`which mksquashfs`" ]; then
     apt -y install squashfs-tools
   fi
-  mksquashfs "$data" "$output"
+  mksquashfs "$data" "$output" -noappend -no-progress || \
+    error "Could not squash to $output"
 elif [ "$type" == "ext2" ]
 then
   bytes="`du -s --block-size=1 | grep -oE '^\S+'`"
@@ -101,7 +102,8 @@ then
   mkdir "$ext_mount" || \
     error "$ext_mount exists."
   mount "$output" "$ext_mount"
-  mv "$data/"* "$ext_mount"
+  mv "$data/"* "$ext_mount" || \
+    error "Could not copy files to $output"
   umount "$ext_mount"
 else
   error "Unrecognized type \"$type\"."
