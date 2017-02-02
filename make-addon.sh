@@ -112,6 +112,7 @@ chroot "$root" <<EOF
   export HOME=/root
   export LANG=C
   export LC_ALL=C
+  export USER="`ls /home/`"
   #  To allow a few apps using upstart to install correctly. JM 2011-02-21
   dpkg-divert --local --rename --add /sbin/initctl
   ln -s /bin/true /sbin/initctl
