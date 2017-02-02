@@ -154,7 +154,8 @@ elif [ "$type" == "ext2" ]
 then
   umount "$output"
   bytes="`du -s --block-size=1 | grep -oE '^\S+'`"
-  bytes="$((bytes + 100000))"
+  # multiplying bytes to not just trust the computation
+  bytes="$((bytes * 2 + 100000))"
   log "Bytes: $bytes"
   yes | head -c "$bytes" > "$output"
   mkfs.ext2 "$output"
