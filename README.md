@@ -7,6 +7,7 @@ Ubunut live images come with software like Open Office and Pidgin for the end us
 Programmers need other tools.
 We can equip USB devices with the additional software without changing the underlying system.
 The installation is **just one copy and paste**:  
+
 1. Copy an [example](examples/idle-python3.5.squashfs?raw=true) into the `casper` folder or wherever `filesystem.squashfs` is.
 2. Boot and you can start the Python Shell.
 
