@@ -44,6 +44,7 @@ root="/tmp/`basename \"$script\"`-`basename \"$output\"`-`date +%N`"
 iso_mount="${root}-iso"
 fs_mount="${root}-fs"
 data="${root}-data"
+type="${output##*.}"
 
 log "Creating directories."
 mkdir -p "$root"
@@ -72,7 +73,7 @@ mount -t aufs -o "br=$data:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
 log "Executing in $root:"
-log " $@"
+log "  $@"
 chroot "$root" "$@" || \
   error "Error in command."
 
@@ -82,4 +83,29 @@ umount "$iso_mount"
 
 log "Result in $data: "`ls "$data"`
 
+log "Creating $type file $output"
+if [ "$type" == "squashfs" ]
+then
+  if [ -z"`which mksquashfs`" ]; then
+    apt -y install squashfs-tools
+  fi
+  mksquashfs "$data" "$output"
+elif [ "$type" == "ext2" ]
+then
+  bytes="`du -s --block-size=1 | grep -oE '^\S+'`"
+  bytes="$((bytes + 100000))"
+  log "Bytes: $bytes"
+  yes | head -c "$bytes" > "$output"
+  mkfs.ext2 "$output"
+  ext_mount="${data}-ext2"
+  mkdir "$ext_mount" || \
+    error "$ext_mount exists."
+  mount "$output" "$ext_mount"
+  mv -t "$ext_mount" "$data"
+  ummount "$ext_mount"
+else
+  error "Unrecognized type \"$type\"."
+fi
+
+log "Output: $output"
 
