@@ -76,7 +76,8 @@ mkdir "$host_copy/sys" "$host_copy/proc" "$host_copy/dev" "$host_copy/etc" || \
   error "Could not create sub directories for host."
 cp -vr "/etc/resolvconf" "$host_copy/etc/resolvconf" || \
   error "Could not copy resolvconf"
-cp "/etc/resolv.conf" "$host_copy/resolv.conf"
+cp "/etc/resolv.conf" "$host_copy/etc/resolv.conf" || \
+  error "Could not copy resolv.conf"
 cp "/etc/hosts" "$host_copy/hosts"
 sudo mount --rbind "/sys" "$host_copy/sys" || error "Could not mount sys."
 sudo mount --rbind "/dev" "$host_copy/dev" || error "Could not mount dev."
@@ -90,11 +91,7 @@ log "Setting up change-root environment"
 chroot "$root" <<EOF
   set -e
   # Set up several useful shell variables
-  export CASPER_GENERATE_UUID=1
   export HOME=/root
-  export TTY=unknown
-  export TERM=vt100
-  export DEBIAN_FRONTEND=noninteractive
   export LANG=C
   export LC_ALL=C
   #  To allow a few apps using upstart to install correctly. JM 2011-02-21
@@ -119,6 +116,7 @@ EOF
 for file in "$data/sbin/initctl" "$data/var/lib/dpkg/diversions" "$data/var/lib/dpkg/diversions-old"; do
   rm -f "$file"
 done
+
 
 log "Unmounting"
 for dir in "$root" "$fs_mount" "$iso_mount" "$host_copy/sys" "$host_copy/dev" "$host_copy/proc"; do
