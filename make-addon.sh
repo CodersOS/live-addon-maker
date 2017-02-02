@@ -71,10 +71,13 @@ mount "$fs_squash" "$fs_mount" || \
 
 log "Copying environment from host."
 # see https://github.com/fossasia/meilix/blob/master/build.sh
+# and https://help.ubuntu.com/community/LiveCDCustomizationFromScratch
 mkdir "$host_copy/sys" "$host_copy/proc" "$host_copy/dev" "$host_copy/etc" || \
   error "Could not create sub directories for host."
-cp -vr /etc/resolvconf "$host_copy/etc/resolvconf" || \
+cp -vr "/etc/resolvconf" "$host_copy/etc/resolvconf" || \
   error "Could not copy resolvconf"
+cp "/etc/resolv.conf" "$host_copy/resolv.conf"
+cp "/etc/hosts" "$host_copy/hosts"
 sudo mount --rbind "/sys" "$host_copy/sys" || error "Could not mount sys."
 sudo mount --rbind "/dev" "$host_copy/dev" || error "Could not mount dev."
 sudo mount -t proc none "$host_copy/proc"  || error "Could not mount proc."
@@ -85,6 +88,7 @@ mount -t aufs -o "br=$data:$host_copy:$fs_mount=rr" none "$root/" || \
 
 log "Setting up change-root environment"
 chroot "$root" <<EOF
+  set -e
   # Set up several useful shell variables
   export CASPER_GENERATE_UUID=1
   export HOME=/root
@@ -92,11 +96,12 @@ chroot "$root" <<EOF
   export TERM=vt100
   export DEBIAN_FRONTEND=noninteractive
   export LANG=C
-  export LIVE_BOOT_SCRIPTS="casper lupin-casper"
+  export LC_ALL=C
   #  To allow a few apps using upstart to install correctly. JM 2011-02-21
   dpkg-divert --local --rename --add /sbin/initctl
   ln -s /bin/true /sbin/initctl
 EOF
+[ "$?" == 0 ] || error "Could not setup changeroot environment."
 
 log "Executing in $root:"
 log "  $@"
@@ -105,10 +110,15 @@ chroot "$root" "$@" || \
 
 log "Cleaning up change-root environment"
 chroot "$root" <<EOF
+  set -e
   # Reverting earlier initctl override. JM 2012-0604
   rm /sbin/initctl
   dpkg-divert --rename --remove /sbin/initctl
 EOF
+[ "$?" == 0 ] || error "Could not clean up change root environment."
+for file in "$data/sbin/initctl" "$data/var/lib/dpkg/diversions"; do
+  rm -f "$file"
+done
 
 log "Unmounting"
 for dir in "$root" "$fs_mount" "$iso_mount" "$host_copy/sys" "$host_copy/dev" "$host_copy/proc"; do
