@@ -80,7 +80,7 @@ sudo mount --rbind "/dev" "$host_copy/dev" || error "Could not mount dev."
 sudo mount -t proc none "$host_copy/proc"  || error "Could not mount proc."
 
 log "Mounting aufs to $root"
-mount -t aufs -o "br=$data:$fs_mount=rr" none "$root/" || \
+mount -t aufs -o "br=$data:$host_copy:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
 log "Executing in $root:"
