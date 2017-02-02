@@ -24,8 +24,9 @@ error() {
 }
 
 # input
+output="$1"
+shift
 script="$1"
-output="$2"
 
 log "verifying parameters"
 if [ -z "$script" ] || [ -z "$output" ]
@@ -42,9 +43,10 @@ log "Creating directories $root and $data"
 mkdir -p "$root"
 mkdir "$data" || error "$data exists."
 
-mount -t aufs -o "noatime,dirs=$data=rw:/=ro" "$root"
+mount -t aufs -o "noatime,dirs=$data=rw:/=ro" "$root" "$root" || \
+  error "Could not mount."
 
-chroot "$root" "$script"
+chroot "$root" "$@"
 
 umount "$root"
 
