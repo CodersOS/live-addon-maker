@@ -65,11 +65,18 @@ log "Mounting $fs_squash to $fs_mount"
 mount "$fs_squash" "$fs_mount" || \
   error "Could not mount filesystem."
 
+log "Mounting aufs to $root"
 mount -t aufs -o "br=$data:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
-chroot "$root" "$@"
+log "Executing in $root $@"
+chroot "$root" "$@" || \
+  error "Error in command."
 
 umount "$root"
+umount "$fs_mount"
+umount "$iso_mount"
+
+log "Result in $data: "`ls "$data"`
 
 
