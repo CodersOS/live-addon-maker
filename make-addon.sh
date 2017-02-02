@@ -88,9 +88,9 @@ log "  $@"
 chroot "$root" "$@" || \
   error "Error in command."
 
-umount "$root"
-umount "$fs_mount"
-umount "$iso_mount"
+for dir in "$root" "$fs_mount" "$iso_mount" "$host_copy/sys" "$host_copy/dev" "$host_copy/proc"; do
+  umount "$dir"
+done
 
 log "Result in $data: "`ls "$data"`
 
