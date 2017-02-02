@@ -71,7 +71,7 @@ mount "$fs_squash" "$fs_mount" || \
 
 log "Copying environment from host."
 # see https://github.com/fossasia/meilix/blob/master/build.sh
-mkdir "$host_copy/sys" "host_copy/proc" "$host_copy/dev" "host_copy/etc" || \
+mkdir "$host_copy/sys" "$host_copy/proc" "$host_copy/dev" "$host_copy/etc" || \
   error "Could not create sub directories for host."
 cp -vr /etc/resolvconf "$host_copy/etc/resolvconf" || \
   error "Could not copy resolvconf"
@@ -83,11 +83,34 @@ log "Mounting aufs to $root"
 mount -t aufs -o "br=$data:$host_copy:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
+log "Setting up change-root environment"
+chroot "$root" <<EOF
+  # Set up several useful shell variables
+  export CASPER_GENERATE_UUID=1
+  export HOME=/root
+  export TTY=unknown
+  export TERM=vt100
+  export DEBIAN_FRONTEND=noninteractive
+  export LANG=C
+  export LIVE_BOOT_SCRIPTS="casper lupin-casper"
+  #  To allow a few apps using upstart to install correctly. JM 2011-02-21
+  dpkg-divert --local --rename --add /sbin/initctl
+  ln -s /bin/true /sbin/initctl
+EOF
+
 log "Executing in $root:"
 log "  $@"
 chroot "$root" "$@" || \
   error "Error in command."
 
+log "Cleaning up change-root environment"
+chroot "$root" <<EOF
+  # Reverting earlier initctl override. JM 2012-0604
+  rm /sbin/initctl
+  dpkg-divert --rename --remove /sbin/initctl
+EOF
+
+log "Unmounting"
 for dir in "$root" "$fs_mount" "$iso_mount" "$host_copy/sys" "$host_copy/dev" "$host_copy/proc"; do
   umount "$dir"
 done
