@@ -3,8 +3,10 @@
 help() {
   echo "
 
-   make-addon.sh OUTPUT-FILE COMMAND [ARG]...
+   make-addon.sh ISO OUTPUT-FILE COMMAND [ARG]...
 
+   - ISO
+     is the iso image to create the addon for.
    - OUTPUT-FILE
      Is the file to which the addon should be saved.
      It must have either ending 'ext2' or 'squashfs'.
@@ -24,12 +26,14 @@ error() {
 }
 
 # input
+iso="$1"
+shift
 output="$1"
 shift
 script="$1"
 
 log "verifying parameters"
-if [ -z "$script" ] || [ -z "$output" ]
+if [ -z "$iso" ] || [ -z "$script" ] || [ -z "$output" ]
 then
   help
   exit 1
@@ -37,13 +41,22 @@ fi
 
 log "Deriving parameters."
 root="/tmp/`basename \"$script\"`-`basename \"$output\"`-`date +%N`"
+iso_mount="${root}-iso"
+fs_mount="${root}-fs"
 data="${root}-data"
 
 log "Creating directories $root and $data"
 mkdir -p "$root"
-mkdir "$data" || error "$data exists."
+for dir in "$data" "$iso_mount" "$fs_mount"; do
+  mkdir "$dir" || error "$dir exists."
+done
 
-mount -t aufs -o "noatime,dirs=$data=rw:/=ro" "$root" "$root" || \
+mount "$iso" "$iso_mount"
+
+exit
+
+
+mount -t aufs -o "br=$data:$fs=rr" none "$root/" || \
   error "Could not mount."
 
 chroot "$root" "$@"
