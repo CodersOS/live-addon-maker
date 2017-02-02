@@ -145,7 +145,7 @@ log "Result in $data: "`ls "$data"`
 log "Creating $type file $output"
 if [ "$type" == "squashfs" ]
 then
-  if [ -z"`which mksquashfs`" ]; then
+  if [ -z "`which mksquashfs`" ]; then
     apt -y install squashfs-tools
   fi
   mksquashfs "$data" "$output" -noappend -no-progress || \
