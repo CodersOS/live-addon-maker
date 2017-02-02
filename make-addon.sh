@@ -42,7 +42,7 @@ log "Creating directories $root and $data"
 mkdir -p "$root"
 mkdir "$data" || error "$data exists."
 
-mount -t aufs -o "noatime,dirs=$data=rw:/=rr" aufs "$root"
+mount -t aufs -o "noatime,dirs=$data=rw:/=ro" "$root"
 
 chroot "$root" "$script"
 
