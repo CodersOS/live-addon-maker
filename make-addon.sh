@@ -42,9 +42,10 @@ log "Creating directories $root and $data"
 mkdir -p "$root"
 mkdir "$data" || error "$data exists."
 
-mount -t aufs -o "noatime,dirs=$data=rw:/=rr" aufs "$root"
+mount -t overlayfs -o "upperdir=$data,lowerdir=/" || \
+  error "Could not mount the file system."
 
-chroot "$root" "$script"
+chroot "$root" "$script" || error "Could not execute $script"
 
 umount "$root"
 
