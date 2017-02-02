@@ -45,18 +45,27 @@ iso_mount="${root}-iso"
 fs_mount="${root}-fs"
 data="${root}-data"
 
-log "Creating directories $root and $data"
+log "Creating directories."
 mkdir -p "$root"
 for dir in "$data" "$iso_mount" "$fs_mount"; do
   mkdir "$dir" || error "$dir exists."
 done
 
-mount "$iso" "$iso_mount"
+log "Mounting $iso to $iso_mount"
+mount "$iso" "$iso_mount" || \
+  error "Could not mount iso."
 
-exit
+log "Searching for filesystem"
+relative_filesystem_squashfs="`( cd \"$iso_mount\" && find -name filesystem.squashfs )`"
+[ -z "$relative_filesystem_squashfs" ] && \
+  error "did not find filesystem.squashfs in $iso_mount"
+fs_squash="$iso_mount/$relative_filesystem_squashfs"
 
+log "Mounting $fs_squash to $fs_mount"
+mount "$fs_squash" "$fs_mount" || \
+  error "Could not mount filesystem."
 
-mount -t aufs -o "br=$data:$fs=rr" none "$root/" || \
+mount -t aufs -o "br=$data:$fs_mount=rr" none "$root/" || \
   error "Could not mount."
 
 chroot "$root" "$@"
