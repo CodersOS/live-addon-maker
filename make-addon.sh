@@ -241,15 +241,18 @@ clean_up() {
     return
   fi
   umount "$fs_mount"
-  umount "data"
-  umount "iso_mount"
+  umount "$data"
+  umount "$iso_mount"
   umount "$host_copy/sys"
   umount "$host_copy/dev"
   umount "$host_copy/proc"
   (
     cd "$base"
-    for dir in step-*
-    umount "$dir"
+    if [ "`echo step-*`" != "step-*" ]; then
+      for dir in step-*; do
+        umount "$dir"
+      done
+    fi
   )
 }
 
@@ -262,3 +265,5 @@ log_call initialize_mount_order
 log_call parse_options "$@"
 log_call write_addon
 log_call clean_up
+
+exit 0
