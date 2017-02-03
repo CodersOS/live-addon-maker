@@ -91,6 +91,13 @@ verify_parameters() {
   fi
 }
 
+find_filesystem() {
+  (
+    cd "$iso_mount"
+    find -name filesystem.squashfs
+  )
+}
+
 mount_root_filesystem() {
   base="/tmp/`basename \"$iso\"`-`basename \"$addon\"`-`date +%N`"
   iso_mount="$base/iso"
@@ -106,7 +113,7 @@ mount_root_filesystem() {
     error "Could not mount iso."
 
   log "Searching for filesystem"
-  relative_filesystem_squashfs="`( cd \"$iso_mount\" && find -name filesystem.squashfs$
+  relative_filesystem_squashfs="`find_filesystem`"
   [ -n "$relative_filesystem_squashfs" ] || \
     error "did not find filesystem.squashfs in $iso_mount"
   fs_squash="$iso_mount/$relative_filesystem_squashfs"
@@ -118,17 +125,18 @@ mount_root_filesystem() {
 }
 
 setup_root_filesystem() {
-  host_copy="${root}/host"
+  host_copy="$base/host"
+  mkdir "$host_copy"
   log "Copying environment from host."
   # see https://github.com/fossasia/meilix/blob/master/build.sh
   # and https://help.ubuntu.com/community/LiveCDCustomizationFromScratch
   mkdir "$host_copy/etc" || \
-    error "Could not create sub directories for host."
+    error "Could not create sub directory for host."
   cp -vr "/etc/resolvconf" "$host_copy/etc/resolvconf" || \
     error "Could not copy resolvconf"
-  cp "/etc/resolv.conf" "$host_copy/etc/resolv.conf" || \
+  cp -v "/etc/resolv.conf" "$host_copy/etc/resolv.conf" || \
     error "Could not copy resolv.conf"
-  cp "/etc/hosts" "$host_copy/hosts"
+  cp -v "/etc/hosts" "$host_copy/hosts"
   mount_special_file_systems "$host_copy"
 }
 
@@ -143,8 +151,40 @@ mount_special_file_systems() {
     error "Could not mount proc."
 }
 
+initialize_mount_order() {
+  empty="$base/empty"
+  mkdir "$empty" || \
+    error "Could not create empty directory for addon files"
+  [ -n "$host_copy" ] || \
+    error "host_copy not initialized."
+  [ -n "$fs_mount" ] || \
+    error "fs_mount not initialized."
+  mount_order="$host_copy=ro:$fs_mount=rr"
+  mount_order_addon="$empty=ro"
+}
+
+_number_of_mounts=0
+
+create_new_mount_directory() {
+  _number_of_mounts=$((_number_of_mounts + 1))
+  directory="$base/step-$_number_of_mounts"
+  1>&2 mkdir "$directory" || \
+    1>&2 error "Could not create directory for step $_number_of_mounts"
+  echo -n "$directory"
+}
+
+mount_into() {
+  order="$1"
+  directory="$2"
+  mkdir -p "$directory"
+  mount -t aufs -o "br=$order" none "$directory" || \
+    error "Could not mount to $directory"
+}
+
 write_addon() {
+  data="$base/addon"
   type="${addon##*.}"
+  mount_into "$mount_order_addon" "$data"
   log "Creating $type file $addon"
   if [ "$type" == "squashfs" ]; then
     if [ -z "`which mksquashfs`" ]; then
@@ -152,21 +192,6 @@ write_addon() {
     fi
     mksquashfs "$data" "$addon" -noappend -no-progress || \
       error "Could not squash to $addon"
-#  elif [ "$type" == "ext2" ]; then
-#    umount "$addon" 2>/dev/null
-#    bytes="`du -s --block-size=1 | grep -oE '^\S+'`"
-#    # multiplying bytes to not just trust the computation
-#    bytes="$((bytes * 2 + 100000))"
-#    log "Bytes: $bytes"
-#    yes | head -c "$bytes" > "$addon"
-#    mkfs.ext2 "$addon"
-#    ext_mount="${base}/ext2"
-#    mkdir "$ext_mount" || \
-#      error "$ext_mount exists."
-#    mount "$output" "$ext_mount"
-#    mv "$data/"* "$ext_mount" || \
-#      error "Could not copy files to $output"
-#    umount "$ext_mount"
   else
     error "Unrecognized type \"$type\"."
   fi
@@ -215,7 +240,17 @@ clean_up() {
     log "Skipping clean up."
     return
   fi
-  error "TODO"
+  umount "$fs_mount"
+  umount "data"
+  umount "iso_mount"
+  umount "$host_copy/sys"
+  umount "$host_copy/dev"
+  umount "$host_copy/proc"
+  (
+    cd "$base"
+    for dir in step-*
+    umount "$dir"
+  )
 }
 
 
@@ -223,6 +258,7 @@ log_call parse_required_parameters "$1" "$2"; shift; shift
 log_call verify_parameters
 log_call mount_root_filesystem
 log_call setup_root_filesystem
+log_call initialize_mount_order
 log_call parse_options "$@"
 log_call write_addon
 log_call clean_up
