@@ -3,19 +3,43 @@
 help() {
   echo "
 
-   make-addon.sh ISO OUTPUT-FILE [-b BEFORE-COMMAND] COMMAND [ARG]...
+   make-addon.sh ISO ADDON [OPTIONS]
 
-   - ISO
+   --copy-to-root FILE-OR-DIRECTORY
+     Copies the FILE-OR-DIRECTORY to / of the image.
+     The copied files are included in the addon.
+
+   --copy FILE-OR-DIRECTORY DESTINATION
+     FILE-OR-DIRECTORY will be at the path DESTINATION after this.
+     Directories may be mounted and files hard-linked to save space.
+     The copied files and folders are included in the addon.
+
+   --map-to-root DIRECTORY
+     The directory will be mounted on top of the / filesystem.
+     Same as --map DIRECTORY /
+
+   --map DIRECTORY LOCATION
+     Mount a directory to a specific location in the file system.
+
+   --map-command COMMAND
+     The COMMAND is executed but the result is not included in the addon.
+     Example: cd /opt && wget https://example.com
+
+   --command COMMAND
+     The COMMAND is executed as root and the result is included in the addon.
+
+   --startup-command
+     The COMMAND is added to the startup routine of the image.
+     It is executed as root when the system boots.
+
+   ISO
      is the iso image to create the addon for.
-   - OUTPUT-FILE
+
+   ADDON
      Is the file to which the addon should be saved.
      It must have either ending 'ext2' or 'squashfs'.
-   - BEFORE-COMMAND
-     This command is run and the changes are note recorded in the OUTPUT-FILE.
-   - COMMAND
-     is a command to run. It will be executed as root.
-     It can have optional arguments ARG.
-     The changes made by this command are recorded and written to OUTPUT-FILE.
+
+   Each option is executed in the order it is passed to the script.
   "
 }
 
