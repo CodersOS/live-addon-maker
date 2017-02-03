@@ -27,12 +27,12 @@ addon() {
 
 did_ok() {
   _ok=$((_ok + 1))
-  1>&2 echo -e "\e[1;32mOK   $@\e[0m"
+  1>&2 echo -e "\e[1;32mOK   $testcase $@\e[0m"
 }
 
 did_fail() {
   _fail=$((_fail + 1))
-  1>&2 echo -e "\e[1;31mFAIL $@\e[0m"
+  1>&2 echo -e "\e[1;31mFAIL $testcase $@\e[0m"
 }
 
 expect() {
@@ -57,4 +57,8 @@ expect() {
 
 summarize() {
   1>&2 echo -e "\e[1;31mERROR: $_fail \e[1;32m SUCCESS: $_ok\e[0m"
+}
+
+testcase() {
+  testcase="$1"
 }

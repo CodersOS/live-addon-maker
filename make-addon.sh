@@ -73,7 +73,7 @@ option_map() {
 }
 
 option_map_command() {
-  error "TODO"
+  echo -n
 }
 
 option_command() {
