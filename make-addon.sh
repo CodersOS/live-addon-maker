@@ -1,36 +1,20 @@
 #!/bin/bash
+# input
+
+CLEAN=true
+
+parse_required_parameters() {
+  iso="$1"
+  shift
+  addon="$1"
+  shift
+}
+
 
 help() {
   echo "
 
    make-addon.sh ISO ADDON [OPTIONS]
-
-   --copy-to-root FILE-OR-DIRECTORY
-     Copies the FILE-OR-DIRECTORY to / of the image.
-     The copied files are included in the addon.
-
-   --copy FILE-OR-DIRECTORY DESTINATION
-     FILE-OR-DIRECTORY will be at the path DESTINATION after this.
-     Directories may be mounted and files hard-linked to save space.
-     The copied files and folders are included in the addon.
-
-   --map-to-root DIRECTORY
-     The directory will be mounted on top of the / filesystem.
-     Same as --map DIRECTORY /
-
-   --map DIRECTORY LOCATION
-     Mount a directory to a specific location in the file system.
-
-   --map-command COMMAND
-     The COMMAND is executed but the result is not included in the addon.
-     Example: cd /opt && wget https://example.com
-
-   --command COMMAND
-     The COMMAND is executed as root and the result is included in the addon.
-
-   --startup-command
-     The COMMAND is added to the startup routine of the image.
-     It is executed as root when the system boots.
 
    ISO
      is the iso image to create the addon for.
@@ -39,7 +23,32 @@ help() {
      Is the file to which the addon should be saved.
      It must have either ending 'ext2' or 'squashfs'.
 
+   -a --add FILE-OR-DIRECTORY DESTINATION
+     FILE-OR-DIRECTORY will be at the path DESTINATION after this.
+     Directories may be mounted and files hard-linked to save space.
+     The copied files and folders are included in the addon.
+
+   -m --map DIRECTORY LOCATION
+     Mount a directory to a specific location in the file system.
+
+   -C --map-command COMMAND
+     The COMMAND is executed but the result is not included in the addon.
+     Example: cd /opt && wget https://example.com
+
+   -c --command COMMAND
+     The COMMAND is executed as root and the result is included in the addon.
+
+   -s --startup-command
+     The COMMAND is added to the startup routine of the image.
+     It is executed as root when the system boots.
+
+   -n --no-clean
+     Do not clean the files and directories used for this.
+
    Each option is executed in the order it is passed to the script.
+   If you do --map and then --command, you can use what you mapped.
+   If you do --command and then --map, what you want to map is not
+   available for the command.
   "
 }
 
@@ -52,28 +61,107 @@ error() {
   exit 1
 }
 
-# input
-iso="$1"
-shift
-output="$1"
-shift
-if [ "$1" == "-b" ]
-then
-  shift
-  before_command="$1"
-  shift
-else
-  before_command=""
-fi
-script="$1"
+option_add() {
+  error "TODO"
+}
+
+option_map() {
+  error "TODO"
+}
+
+option_map_command() {
+  error "TODO"
+}
+
+option_command() {
+  error "TODO"
+}
+
+option_startup_command() {
+  error "TODO"
+}
+
+verify_parameters() {
+  if [ -z "$iso" ] || [ -z "$addon" ]; then
+    help
+    error "Did not find required parameters."
+  fi
+}
+
+mount_root_filesystem() {
+
+}
+
+setup_root_filesystem() {
+
+}
+
+write_addon() {
+  error "TODO"
+}
+
+log_call() {
+  log "$@"
+  "$@"
+}
+
+parse_options() {
+  while [ -n "$1" ]; do
+    option="$1"
+    shift
+    case $option in
+      -a|--add)
+        log_call option_add "$1" "$2"
+        shift; shift ;;
+      -m|--map)
+        log_call option_map "$1" "$2"
+        shift; shift ;;
+      -C|--map-command)
+        log_call option_map_command "$1"
+        shift ;;
+      -c|--command)
+        log_call option_command "$1"
+        shift ;;
+      -s|--startup-command)
+        log_call option_startup_command "$1"
+        shift ;;
+      -n|--no-clean)
+        log "No cleanup"
+        CLEAN=false
+      *)
+        help
+        error "Invalid option \"$option\"."
+    esac
+  done
+}
+
+clean_up() {
+  if [ "$CLEAN" == "false" ]; then
+    log "Skipping clean up."
+    return
+  fi
+  error "TODO"
+}
 
 
-log "verifying parameters"
-if [ -z "$iso" ] || [ -z "$script" ] || [ -z "$output" ]
-then
-  help
-  exit 1
-fi
+log_call parse_required_parameters
+log_call verify_parameters
+log_call mount_root_filesystem
+log_call setup_root_filesystem
+log_call parse_options
+log_call write_addon
+log_call clean_up
+
+
+
+
+
+
+
+
+
+
+
 
 log "Deriving parameters."
 root="/tmp/`basename \"$script\"`-`basename \"$output\"`-`date +%N`"
