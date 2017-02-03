@@ -77,7 +77,7 @@ option_map_command() {
 }
 
 option_command() {
-  error "TODO"
+  echo -n
 }
 
 option_startup_command() {
