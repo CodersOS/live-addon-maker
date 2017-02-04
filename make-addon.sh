@@ -91,7 +91,8 @@ add_to_directory() {
     log attempting hardlink
     if ! ln -v -t "$target" "$source"; then
       log "Hard link failed. Copying."
-      cp -v -t "$target" "$source"
+      cp -v -t "$target" "$source" || \
+        error "Could not copy file"
     fi
   fi
 }
