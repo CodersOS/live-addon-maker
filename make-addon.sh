@@ -37,8 +37,8 @@ help() {
      The COMMAND is executed but the result is not included in the addon.
      Example: cd /opt && wget https://example.com
 
-   -s --startup-command
-     The COMMAND is added to the startup routine of the image.
+   -s --startup-command NAME COMMAND
+     The COMMAND is added to the startup routine with a NAME.
      It is executed as root when the system boots.
 
    -n --no-clean
@@ -289,8 +289,8 @@ parse_options() {
         log_call option_command "$1"
         shift ;;
       -s|--startup-command)
-        log_call option_startup_command "$1"
-        shift ;;
+        log_call option_startup_command "$1" "$2"
+        shift; shift ;;
       -n|--no-clean)
         log "No cleanup"
         CLEAN=false ;;
