@@ -39,7 +39,7 @@ addon() {
   fi
   _error="$?"
   if [ "$_error" != "0" ]; then
-    echo "  make-addon.sh $_iso $_addon $@"
+    echo "FAIL make-addon.sh $_iso $_addon $@"
     [ "$SHOW_ADDON_OUTPUT" == "true" ] || output
     did_fail "addon failed with error code $_error"
   fi
@@ -61,7 +61,7 @@ did_skip() {
 }
 
 expect() {
-  local folder="$1"
+  local test="$1"
   local message="$2"
   maybe_skip "$message" || return
   [ "$_error" == "0" ] || return
@@ -72,11 +72,25 @@ expect() {
     did_fail "$message"
     return
   }
-  2>&1 diff "$_mount" "$folder" > "$_output" || {
-    output color
-    did_fail "$message (\"$_mount\" \"$folder\")"
-    return
-  }
+  if [ -d "$test" ]; then
+    2>&1 diff "$_mount" "$test" > "$_output" || {
+      output color
+      did_fail "$message (\"$_mount\" \"$test\")"
+      return
+    }
+  else
+    (
+      cd "$_mount"
+      bash -c "$test"
+      echo "$?"
+      pwd
+      exit "$?"
+    )
+    local error="$?"
+    [ "$error" == "0" ] || {
+      did_fail "$message (\"$_mount\" \"$test\")"
+    }
+  fi
   did_ok "$message"
 }
 
