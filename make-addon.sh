@@ -135,6 +135,8 @@ service_script() {
   echo -n "$command"
 }
 
+
+startup_added_to_mount_order="false"
 option_startup_command() {
   local name="$1"
   local command="$2"
@@ -164,8 +166,11 @@ option_startup_command() {
   service_script "$command" > "$absolute_bin_file"
   chmod +x "$absolute_bin_file"
   chmod +x "$absolute_service_file"
-  mount_order="$startup_dir:$mount_order"
-  mount_order_addon="$startup_dir:$mount_order_addon"
+  if [ "$startup_added_to_mount_order" == "false" ]; then
+    mount_order="$startup_dir:$mount_order"
+    mount_order_addon="$startup_dir:$mount_order_addon"
+    startup_added_to_mount_order="true"
+  fi
   linking="ln -s -t '/etc/systemd/system/default.target.wants/' '$root_service_file'"
   log "Executing $linking"
   execute_command_with_persistence "$linking" "mount_persistent"
