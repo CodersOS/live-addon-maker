@@ -10,4 +10,4 @@ for file in test_*.sh; do
 done
 
 summarize
-
+exit_tests
