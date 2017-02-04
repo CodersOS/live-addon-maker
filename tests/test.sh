@@ -82,8 +82,6 @@ expect() {
     (
       cd "$_mount"
       bash -c "$test"
-      echo "$?"
-      pwd
       exit "$?"
     )
     local error="$?"
