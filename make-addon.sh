@@ -19,16 +19,16 @@ help() {
      is the iso image to create the addon for.
 
    ADDON
-     Is the file to which the addon should be saved.
-     It must have either ending 'ext2' or 'squashfs'.
+     Is the file to which the addon is saved.
+     It should have the ending '.squashfs'.
 
-   -a --add FILE-OR-DIRECTORY DESTINATION
+   -a --add FILE-OR-DIRECTORY TARGET-DIRECTORY
      FILE-OR-DIRECTORY will be at the path DESTINATION after this.
      Directories may be mounted and files hard-linked to save space.
      The copied files and folders are included in the addon.
 
-   -m --map DIRECTORY LOCATION
-     Mount a directory to a specific location in the file system.
+   -m --map DIRECTORY TARGET-DIRECTORY
+     Mount a DIRECTORY to a specific TARGET-DIRECTORY in the file system.
 
    -C --map-command COMMAND
      The COMMAND is executed but the result is not included in the addon.
