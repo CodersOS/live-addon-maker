@@ -1,6 +1,8 @@
 live-addon-maker
 ================
 
+[![Build Status](https://travis-ci.org/CodersOS/live-addon-maker.svg?branch=master)](https://travis-ci.org/CodersOS/live-addon-maker)
+
 Customize your ubuntu iso images with additional software.
 
 Ubunut live images come with software like Open Office and Pidgin for the end user.
