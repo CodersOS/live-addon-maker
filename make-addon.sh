@@ -300,6 +300,8 @@ mount_volatile() {
 execute_command() {
   directory="$1"
   command="$2"
+  log "In $directory"
+  log "Executing $command"
   chroot "$directory" bash -c "$command" || \
     error "Error executing $command"
 }
