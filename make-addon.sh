@@ -27,15 +27,15 @@ help() {
      Directories may be mounted and files hard-linked to save space.
      The copied files and folders are included in the addon.
 
-   -m --map DIRECTORY TARGET-DIRECTORY
+   -A --map DIRECTORY TARGET-DIRECTORY
      Mount a DIRECTORY to a specific TARGET-DIRECTORY in the file system.
+
+   -c --command COMMAND
+     The COMMAND is executed as root and the result is included in the addon.
 
    -C --map-command COMMAND
      The COMMAND is executed but the result is not included in the addon.
      Example: cd /opt && wget https://example.com
-
-   -c --command COMMAND
-     The COMMAND is executed as root and the result is included in the addon.
 
    -s --startup-command
      The COMMAND is added to the startup routine of the image.
@@ -250,6 +250,7 @@ write_addon() {
   data="$base/addon"
   type="${addon##*.}"
   mount_into "$mount_order_addon" "$data"
+  log "Files: `ls \"$data\"`"
   log "Creating $type file $addon"
   if [ "$type" == "squashfs" ]; then
     if [ -z "`which mksquashfs`" ]; then
@@ -278,7 +279,7 @@ parse_options() {
       -a|--add)
         log_call option_add "$1" "$2"
         shift; shift ;;
-      -m|--map)
+      -A|--map)
         log_call option_map "$1" "$2"
         shift; shift ;;
       -C|--map-command)
