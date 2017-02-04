@@ -19,5 +19,5 @@ testcase "example startup script"
   test_expectations
 
 testcase "startup script files are available"
-  addon -s "example" "touch " -c "echo -n /started > '$file2'"
+  addon -s "example" "touch " -c "echo -n /started >> '$file2'"
   test_expectations
