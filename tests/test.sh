@@ -96,3 +96,10 @@ summarize() {
 testcase() {
   testcase="[$1]"
 }
+
+exit_tests() {
+  if [ "$_fail" != "0" ] || [ "$_skip" != "0" ]; then
+    exit 1
+  fi
+  exit 0
+}
