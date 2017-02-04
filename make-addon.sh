@@ -77,7 +77,10 @@ option_map_command() {
 }
 
 option_command() {
-  echo -n
+  command="$1"
+  directory="`create_new_mount_directory`"
+  mount_persistent "$directory"
+  execute_command "$directory" "$command"
 }
 
 option_startup_command() {
@@ -167,9 +170,16 @@ _number_of_mounts=0
 
 create_new_mount_directory() {
   _number_of_mounts=$((_number_of_mounts + 1))
-  directory="$base/step-$_number_of_mounts"
+  directory="$base/step-${_number_of_mounts}-mount"
   1>&2 mkdir "$directory" || \
     1>&2 error "Could not create directory for step $_number_of_mounts"
+  echo -n "$directory"
+}
+
+mount_directory_to_data_directory() {
+  directory="`echo -n \"$1\" | sed 's/mount$/data/'`"
+  mkdir "$directory" ||
+    error "Could not create data directory $directory"
   echo -n "$directory"
 }
 
@@ -178,7 +188,25 @@ mount_into() {
   directory="$2"
   mkdir -p "$directory"
   mount -t aufs -o "br=$order" none "$directory" || \
-    error "Could not mount to $directory"
+    error "Could not mount \"$order\" to \"$directory\""
+}
+
+mount_persistent() {
+  mount_volatile "$1"
+  mount_order_addon="$data_directory=ro:$mount_order_addon"
+}
+
+mount_volatile() {
+  mount_directory="$1"
+  data_directory="`mount_directory_to_data_directory \"$mount_directory\"`"
+  mount_order="$data_directory:$mount_order"
+  mount_into "$mount_order" "$mount_directory"
+}
+
+execute_command() {
+  directory="$1"
+  command="$2"
+  chroot "$directory" bash -c "$command"
 }
 
 write_addon() {
