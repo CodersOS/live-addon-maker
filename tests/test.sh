@@ -67,7 +67,8 @@ expect() {
   [ "$_error" == "0" ] || return
   mkdir -p "$_mount"
   sudo umount "$_mount" 2>/dev/null
-  sudo mount "$_addon" "$_mount" || {
+  sudo mount "$_addon" "$_mount" 1>"$_output" 2>"$_output" || {
+    output
     did_fail "$message"
     return
   }
