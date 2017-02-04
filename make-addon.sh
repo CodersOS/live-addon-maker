@@ -86,7 +86,8 @@ add_to_directory() {
   if [ -d "$source" ]; then
     log "Mounting $source"
     log "      to $target"
-    mount --bind "$source" "$target"
+    mount --bind "$source" "$target" || \
+      error "Could not add folder."
   else
     log attempting hardlink
     if ! ln -v -t "$target" "$source"; then
