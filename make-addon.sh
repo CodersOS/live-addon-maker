@@ -237,7 +237,7 @@ parse_options() {
   while [ -n "$1" ]; do
     option="$1"
     shift
-    case $option in
+    case "$option" in
       -a|--add)
         log_call option_add "$1" "$2"
         shift; shift ;;
@@ -271,8 +271,8 @@ clean_up() {
   umount "$fs_mount"
   umount "$data"
   umount "$iso_mount"
-  umount "$host_copy/sys"
-  umount "$host_copy/dev"
+  umount "$host_copy/sys" 2>>/dev/null
+  umount "$host_copy/dev" 2>>/dev/null
   umount "$host_copy/proc"
   (
     cd "$base"

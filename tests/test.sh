@@ -9,10 +9,22 @@ if [ -z "$_initialized" ]; then
   _output=/tmp/test-output.txt
    _initialized=true
   _error=0
+  for option in "$@"; do
+    case "$option" in
+      -a)
+        SHOW_ADDON_OUTPUT="true" ;;
+    esac
+  done
 fi
 
 # make an empty directory because git cannot to that
 mkdir -p "empty"
+
+output() {
+  echo -e -n "\e[1;34m"
+  cat "$_output" | sed 's/^/    /'
+  echo -n -e "\e[0m"
+}
 
 addon() {
   touch "$_output"
@@ -20,8 +32,10 @@ addon() {
   _error="$?"
   if [ "$_error" != "0" ]; then
     echo "  make-addon.sh $_iso $_addon $@"
-    cat "$_output" | sed 's/^/    /'
+    output
     did_fail "addon failed with error code $_error"
+  elif [ "$SHOW_ADDON_OUTPUT" == "true" ]; then
+    output
   fi
 }
 
@@ -48,7 +62,7 @@ expect() {
     return
   }
   2>&1 diff "$_mount" "$folder" > "$_output" || {
-    cat "$_output" | sed 's/^/    /'
+    output
     did_fail "$message (\"$_mount\" \"$folder\")"
     return
   }
@@ -60,5 +74,5 @@ summarize() {
 }
 
 testcase() {
-  testcase="$1"
+  testcase="[$1]"
 }
