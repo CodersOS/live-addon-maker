@@ -2,12 +2,22 @@
 
 source test.sh
 
+link="etc/systemd/system/default.target.wants/example.service"
+file1="/etc/systemd/system/example.service"
+file2="/usr/local/bin/start-example-service.sh"
+
+test_expectations() {
+  expect example_startup_script "touching file in root"
+  expect "test -L $link" \
+         "Link $link exists"
+  expect '[ "`readlink '"$link"'`" == "'$file1'" ]' \
+         "Link has correct target."
+}
+
 testcase "example startup script"
   addon -s "example" "touch /started"
-  expect example_startup_script "touching file in root"
-  expect "test -L etc/systemd/system/default.target.wants/example.service" \
-         "Link etc/systemd/system/default.target.wants/example.service exists"
+  test_expectations
 
 testcase "startup script files are available"
-  addon -s "example" "touch " -c "echo -n /started > /usr/local/bin/start-example-service.sh"
-  expect example_startup_script "modifying startup file"
+  addon -s "example" "touch " -c "echo -n /started > '$file2'"
+  test_expectations

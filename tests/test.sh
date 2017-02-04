@@ -73,7 +73,7 @@ expect() {
     return
   }
   if [ -d "$test" ]; then
-    2>&1 diff "$_mount" "$test" > "$_output" || {
+    2>&1 diff -rq --no-dereference "$_mount" "$test" > "$_output" || {
       output color
       did_fail "$message (\"$_mount\" \"$test\")"
       return
@@ -81,11 +81,12 @@ expect() {
   else
     (
       cd "$_mount"
-      bash -c "$test"
+      bash -c "$test" 1>"$_output" 2>"$_output"
       exit "$?"
     )
     local error="$?"
     [ "$error" == "0" ] || {
+      output color
       did_fail "$message (\"$_mount\" \"$test\")"
     }
   fi
