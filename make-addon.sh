@@ -123,7 +123,7 @@ systemd_script() {
   echo "After=network.target"
   echo ""
   echo "[Service]"
-  echo "ExecStart=/usr/local/bin/start-${name}-service.sh"
+  echo "ExecStart=$name"
   echo ""
   echo "[Install]"
   echo "WantedBy=default.target"
@@ -138,18 +138,37 @@ service_script() {
 option_startup_command() {
   local name="$1"
   local command="$2"
+  [ -n "$name" ] && [ -n "$command" ] || \
+    error "Missing parameter for startup option"
+  echo "$name" | grep -vqE "[[:space:]]|'" || \
+    error "The name \"$name\" contains spaces or '. Expected no space in name."
   local startup_dir="$base/startup"
-  local bin="$startup_dir/usr/local/bin"
-  local system="$startup_dir/etc/systemd/system"
-  local bin_file="$bin/$name.service"
-  local system_file="$system/start-$name-service.sh"
-  mkdir -p "$bin" "$system"
-  systemd_script "$name" > "$bin_file"
-  service_script "$name" > "$system_file"
-  chmod +x "$bin_file"
-  chmod +x "$system_file"
+
+  local root_bin_folder="/usr/local/bin"
+  local root_service_folder="/etc/systemd/system"
+
+  local absolute_bin_folder="$startup_dir$root_bin_folder"
+  local absolute_service_folder="$startup_dir$root_service_folder"
+
+  local bin_name="start-$name-service.sh"
+  local service_name="$name.service"
+
+  local absolute_bin_file="$absolute_bin_folder/$bin_name"
+  local absolute_service_file="$absolute_service_folder/$service_name"
+
+  local root_bin_file="$root_bin_folder/$bin_name"
+  local root_service_file="$root_service_folder/$service_name"
+
+  mkdir -p "$absolute_bin_folder" "$absolute_service_folder"
+  systemd_script "$root_bin_file" > "$absolute_service_file"
+  service_script "$command" > "$absolute_bin_file"
+  chmod +x "$absolute_bin_file"
+  chmod +x "$absolute_service_file"
   mount_order="$startup_dir:$mount_order"
   mount_order_addon="$startup_dir:$mount_order_addon"
+  linking="ln -s -t '/etc/systemd/system/default.target.wants/' '$root_service_file'"
+  log "Executing $linking"
+  execute_command_with_persistence "$linking" "mount_persistent"
 }
 
 verify_parameters() {
@@ -274,14 +293,15 @@ mount_volatile() {
 execute_command() {
   directory="$1"
   command="$2"
-  chroot "$directory" bash -c "$command"
+  chroot "$directory" bash -c "$command" || \
+    error "Error executing $command"
 }
 
 write_addon() {
   data="$base/addon"
   type="${addon##*.}"
   mount_into "$mount_order_addon" "$data"
-  log "Files: `ls \"$data\"`"
+  log "Files: "`ls "$data"`
   log "Creating $type file $addon"
   if [ "$type" == "squashfs" ]; then
     if [ -z "`which mksquashfs`" ]; then
