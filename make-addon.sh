@@ -65,11 +65,39 @@ error() {
 }
 
 option_add() {
-  error "TODO"
+  add_with_persistence "$1" "$2" "mount_persistent"
+}
+
+add_with_persistence() {
+  file_or_directory="$1"
+  target="$2"
+  persistence="$3"
+  directory="`create_new_mount_directory`"
+  "$persistence" "$directory" || \
+    error "Could not do $persistence $directory"
+  target_directory="`mount_directory_to_data_directory \"$directory\"`"
+  add_to_directory "$file_or_directory" "$target_directory/$target"
+}
+
+add_to_directory() {
+  source="$1"
+  target="$2"
+  [ -e "$target" ] || mkdir -p "$target"
+  if [ -d "$source" ]; then
+    log "Mounting $source"
+    log "      to $target"
+    mount --bind "$source" "$target"
+  else
+    log attempting hardlink
+    if ! ln -v -t "$target" "$source"; then
+      log "Hard link failed. Copying."
+      cp -v -t "$target" "$source"
+    fi
+  fi
 }
 
 option_map() {
-  error "TODO"
+  add_with_persistence "$1" "$2" "mount_volatile"
 }
 
 option_map_command() {
@@ -82,10 +110,10 @@ option_command() {
 
 execute_command_with_persistence() {
   command="$1"
-  persistance="$2"
+  persistence="$2"
   directory="`create_new_mount_directory`"
-  "$persistance" "$directory" || \
-    error "Could not do $persistance $directory"
+  "$persistence" "$directory" || \
+    error "Could not do $persistence $directory"
   execute_command "$directory" "$command"
 }
 
@@ -186,8 +214,7 @@ create_new_mount_directory() {
 
 mount_directory_to_data_directory() {
   directory="`echo -n \"$1\" | sed 's/mount$/data/'`"
-  mkdir "$directory" ||
-    error "Could not create data directory $directory"
+  mkdir -p "$directory"
   echo -n "$directory"
 }
 
@@ -195,7 +222,8 @@ mount_into() {
   order="$1"
   directory="$2"
   mkdir -p "$directory"
-  log "Mounting \"$order\" to \"$directory\"."
+  log "Mounting aufs $order"
+  log "           to $directory"
   mount -t aufs -o "br=$order" none "$directory" || \
     error "Could not mount \"$order\" to \"$directory\""
 }
@@ -281,7 +309,7 @@ clean_up() {
     cd "$base"
     if [ "`echo step-*-mount`" != "step-*-mount" ]; then
       for dir in step-*-mount; do
-        umount "$dir"
+        umount "$dir" 2>>/dev/null
       done
     fi
   )
