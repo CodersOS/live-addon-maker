@@ -1,5 +1,8 @@
 language: generic
 sudo: required
 
+before_script:
+- wget http://releases.ubuntu.com/16.04.1/ubuntu-16.04.1-server-amd64.iso
+
 script:
 - ./tests/run_all.sh
