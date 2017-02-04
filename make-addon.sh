@@ -117,8 +117,39 @@ execute_command_with_persistence() {
   execute_command "$directory" "$command"
 }
 
+systemd_script() {
+  local name="$1"
+  echo "[Unit]"
+  echo "After=network.target"
+  echo ""
+  echo "[Service]"
+  echo "ExecStart=/usr/local/bin/start-${name}-service.sh"
+  echo ""
+  echo "[Install]"
+  echo "WantedBy=default.target"
+}
+
+service_script() {
+  local command="$1"
+  echo "#!/bin/bash"
+  echo -n "$command"
+}
+
 option_startup_command() {
-  error "TODO"
+  local name="$1"
+  local command="$2"
+  local startup_dir="$base/startup"
+  local bin="$startup_dir/usr/local/bin"
+  local system="$startup_dir/etc/systemd/system"
+  local bin_file="$bin/$name.service"
+  local system_file="$system/start-$name-service.sh"
+  mkdir -p "$bin" "$system"
+  systemd_script "$name" > "$bin_file"
+  service_script "$name" > "$system_file"
+  chmod +x "$bin_file"
+  chmod +x "$system_file"
+  mount_order="$startup_dir:$mount_order"
+  mount_order_addon="$startup_dir:$mount_order_addon"
 }
 
 verify_parameters() {
