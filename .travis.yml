@@ -1,0 +1,5 @@
+language: generic
+sudo: required
+
+script:
+- sudo ./tests/run_all.sh
