@@ -73,13 +73,19 @@ option_map() {
 }
 
 option_map_command() {
-  echo -n
+  execute_command_with_persistence "$1" "mount_volatile"
 }
 
 option_command() {
+  execute_command_with_persistence "$1" "mount_persistent"
+}
+
+execute_command_with_persistence() {
   command="$1"
+  persistance="$2"
   directory="`create_new_mount_directory`"
-  mount_persistent "$directory"
+  "$persistance" "$directory" || \
+    error "Could not do $persistance $directory"
   execute_command "$directory" "$command"
 }
 
@@ -166,13 +172,15 @@ initialize_mount_order() {
   mount_order_addon="$empty=ro"
 }
 
-_number_of_mounts=0
-
 create_new_mount_directory() {
-  _number_of_mounts=$((_number_of_mounts + 1))
-  directory="$base/step-${_number_of_mounts}-mount"
+  local i=0
+  while true; do
+    i=$((i + 1))
+    local directory="$base/step-${i}-mount"
+    [ -e "$directory" ] || break
+  done
   1>&2 mkdir "$directory" || \
-    1>&2 error "Could not create directory for step $_number_of_mounts"
+    1>&2 error "Could not create directory for step $i"
   echo -n "$directory"
 }
 
@@ -187,6 +195,7 @@ mount_into() {
   order="$1"
   directory="$2"
   mkdir -p "$directory"
+  log "Mounting \"$order\" to \"$directory\"."
   mount -t aufs -o "br=$order" none "$directory" || \
     error "Could not mount \"$order\" to \"$directory\""
 }
@@ -268,20 +277,20 @@ clean_up() {
     log "Skipping clean up."
     return
   fi
+  (
+    cd "$base"
+    if [ "`echo step-*-mount`" != "step-*-mount" ]; then
+      for dir in step-*-mount; do
+        umount "$dir"
+      done
+    fi
+  )
   umount "$fs_mount"
   umount "$data"
   umount "$iso_mount"
   umount "$host_copy/sys" 2>>/dev/null
   umount "$host_copy/dev" 2>>/dev/null
   umount "$host_copy/proc"
-  (
-    cd "$base"
-    if [ "`echo step-*`" != "step-*" ]; then
-      for dir in step-*; do
-        umount "$dir"
-      done
-    fi
-  )
 }
 
 
