@@ -90,7 +90,7 @@ matches_testcase() {
 }
 
 summarize() {
-  1>&2 echo -e "\e[1;31mERROR: $_fail \e[1;32mSUCCESS: $_ok\e[1;33m SKIPPED $_skip\e[0m"
+  1>&2 echo -e "\e[1;31mERROR: $_fail \e[1;32mSUCCESS: $_ok\e[1;33m SKIPPED: $_skip\e[0m"
 }
 
 testcase() {
