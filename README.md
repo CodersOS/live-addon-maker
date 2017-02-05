@@ -36,8 +36,7 @@ These lines go through all `.ext2`, `.squashfs` files and `.dir` folders and mou
 2. all `.squashfs` files are mounted readonly.
 3. all `.dir` directories are mounted readonly.
 
-Summary
-~~~~~~~
+**Summary**  
 
 The `make-addon.sh` script creates `.squashfs` files as a basis to customize image.
 Without using any tool, you can also create a folder, e.g. `example.dir` in the folder of the `filesystem.squashfs` and put files there.
