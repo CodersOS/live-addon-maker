@@ -2,7 +2,10 @@ language: generic
 sudo: required
 
 before_script:
+- echo "Get Ubuntu Server"
 - wget http://releases.ubuntu.com/16.04.1/ubuntu-16.04.1-server-amd64.iso
+- echo "Get the diff utility"
+- wget http://ftp.gnu.org/gnu/diffutils/diffutils-3.5.tar.xz && tar -xf diffutils-3.5.tar.xz && ( cd diffutils-3.5 && ./configure && make && make install )
 
 script:
 - ./tests/run_all.sh
