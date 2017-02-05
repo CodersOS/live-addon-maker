@@ -7,15 +7,13 @@ Some files are too big so they are stored somewhere else.
 
 Download them:
 
-- [idle-python3.5](idle-python3.5.squashfs?raw=true) - This is the IDLE Python Shell for Python 3.5.
-- [arduino-1.8.1-linux64](https://github.com/CodersOS/live-addon-maker/releases/download/arduino-1/arduino-1.8.1-linux64.squashfs) - This is the Arduino development environment.
-- [flash](flash.squashfs?raw=true) - The installed `flashplugin-installer` which is required to view flash websites.
-
-
+- [idle-python3.5](z-idle-python3.5.squashfs?raw=true) - This is the IDLE Python Shell for Python 3.5.
+- [arduino-1.8.1-linux64](https://github.com/CodersOS/live-addon-maker/releases/download/arduino-1/z-arduino-1.8.1-linux64.squashfs) - 
+  This is the Arduino development environment.
+- [flash](z-flash.squashfs?raw=true) - The installed `flashplugin-installer` which is required to view flash websites.
 
 Generate
 --------
-
 
 You can generate the example files yourself.
 
@@ -28,3 +26,12 @@ You can generate the example files yourself.
    ```bash
    ./examples/idle-python3.5.sh
    ```
+
+Questions
+---------
+
+**Why are they named with `z-` in the beginning?**  
+Files are mounted in the alphabetic order of their names.
+In order to make these files mounted on top of eachother,
+they start with `z-`, so that the file system is mounted first
+and then the addons.
