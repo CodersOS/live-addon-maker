@@ -95,7 +95,7 @@ add_to_directory() {
     fi
     log "Copying content from $source"
     log "                  to $target"
-    log "Attemption hard link to save space"
+    log "Attempting hard link to save space"
     cp -rlT "$source" "$target" || {
       log "Hard link failed. Copying now"
       cp -ruT "$source" "$target"
