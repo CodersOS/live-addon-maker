@@ -48,6 +48,8 @@ help() {
    If you do --map and then --command, you can use what you mapped.
    If you do --command and then --map, what you want to map is not
    available for the command.
+
+   The /tmp folder is excluded from the addon.
   "
 }
 
@@ -319,8 +321,14 @@ execute_command() {
     error "Error executing $command"
 }
 
+exclude() {
+  echo "tmp"
+}
+
 write_addon() {
   data="$base/addon"
+  exclude_file="$base/exclude.txt"
+  exclude > "$exclude_file"
   type="${addon##*.}"
   mount_into "$mount_order_addon" "$data"
   log "Files: "`ls "$data"`
@@ -329,7 +337,7 @@ write_addon() {
     if [ -z "`which mksquashfs`" ]; then
       apt-get -y install squashfs-tools
     fi
-    mksquashfs "$data" "$addon" -noappend -no-progress || \
+    mksquashfs "$data" "$addon" -noappend -no-progress -ef "$exclude_file" || \
       error "Could not squash to $addon"
   else
     error "Unrecognized type \"$type\"."
@@ -395,14 +403,17 @@ clean_up() {
   umount "$host_copy/proc"
 }
 
+main() {
+  log_call parse_required_parameters "$1" "$2"; shift; shift
+  log_call verify_parameters
+  log_call mount_root_filesystem
+  log_call setup_root_filesystem
+  log_call initialize_mount_order
+  log_call parse_options "$@"
+  log_call write_addon
+  log_call clean_up
+}
 
-log_call parse_required_parameters "$1" "$2"; shift; shift
-log_call verify_parameters
-log_call mount_root_filesystem
-log_call setup_root_filesystem
-log_call initialize_mount_order
-log_call parse_options "$@"
-log_call write_addon
-log_call clean_up
+main "$@"
 
 exit 0
