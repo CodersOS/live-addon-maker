@@ -18,6 +18,7 @@ if [ -z "$_initialized" ]; then
         MATCH_TEST_CASE="${option#-t=}" ;;
     esac
   done
+  _merge_addon="/tmp/merge-addon"
 fi
 
 # make an empty directory because git cannot to that
@@ -43,6 +44,32 @@ addon() {
     [ "$SHOW_ADDON_OUTPUT" == "true" ] || output
     did_fail "addon failed with error code $_error"
   fi
+}
+
+merge() {
+  if [ -z "`which mksquashfs`" ]; then
+    1>&2 echo "Installing squashfs tools"
+    apt-get -y install squashfs-tools
+  fi
+  i=0
+  local addons=""
+  for folder in "$@"; do
+    i="$((i + 1))"
+    local addon="${_merge_addon}-${i}.squashfs"
+    mksquashfs "$folder" "$addon" -noappend 1>"$_output" 2>"$_output" || {
+      output
+      echo "ERROR: Could not squash addon"
+      return 1
+    }
+    local addons="$addons $addon"
+  done
+  ../merge-addons.sh "$_addon" $addons 2>"$_output" 1>"$_output" || {
+    local error="$?"
+    output
+    echo "ERROR: merge-addons.sh $_addon $addons"
+    echo "       exited with $error"
+    return 1
+  }
 }
 
 did_ok() {
