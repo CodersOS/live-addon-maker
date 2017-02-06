@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$_initialized" ]; then
-  _iso="` echo ../*.iso`"
+  _iso="`ls ../*.iso | head -n 1`"
   _addon=/tmp/test.squashfs
   _mount=/tmp/test.squashfs-mount
   _ok=0
@@ -63,7 +63,7 @@ merge() {
     }
     local addons="$addons $addon"
   done
-  ../merge-addons.sh "$_addon" $addons 2>"$_output" 1>"$_output" || {
+  sudo ../merge-addons.sh "$_addon" $addons 2>"$_output" 1>"$_output" || {
     local error="$?"
     output
     echo "ERROR: merge-addons.sh $_addon $addons"
