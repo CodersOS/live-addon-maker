@@ -84,12 +84,24 @@ add_to_directory() {
   target="$2"
   [ -e "$target" ] || mkdir -p "$target"
   if [ -d "$source" ]; then
-    log "Mounting $source"
-    log "      to $target"
-    mount --bind "$source" "$target" || \
-      error "Could not add folder."
+    if [ "$target" == "/" ] ; then
+      log "Mounting $source"
+      log "      to $target"
+      mount --bind "$source" "$target" && \
+        return
+      log "Mount failed. Copying files."
+    fi
+    log "Copying content from $source"
+    log "                  to $target"
+    log "Attemption hard link to save space"
+    cp -rlT "$source" "$target" || {
+      log "Hard link failed. Copying now"
+      cp -ruT "$source" "$target"
+    } || \
+      error "Could not copy files"
+    log "Done copying"
   else
-    log attempting hardlink
+    log "Attempting hard link to save space"
     if ! ln -v -t "$target" "$source"; then
       log "Hard link failed. Copying."
       cp -v -t "$target" "$source" || \
