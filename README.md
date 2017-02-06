@@ -77,9 +77,35 @@ in the `/home/` folder with a small explanation.
 
 - Create an addon with the file:
 
-        ./make-addon.sh *.iso example-file.squashfs -a README.txt /home/
+        ./make-addon.sh *.iso explanation.squashfs -a README.txt /home/
 
-- [Copy the addon onto the usb device][ia]
+- [Copy the addon file `explanation.squashfs` onto the usb device][ia]
+
+### Install Software
+
+There is a software which you want to have installed on the live system.
+I assume you want to install the package `git`.
+
+- Create the addon:
+
+        ./make-addon.sh *.iso git.squashfs \
+                        -C 'apt-get update' \
+                        -c 'apt-get -y install git'
+
+**Line 1** uses the `.iso` file you downloaded an wants `git.squashfs` as the output file.  
+In **line 2**, you update the sources of distribution.
+This may be useful if the install command fails because the software was not found.
+The cause is probably that the iso image is some days old the the location of the
+package is not up-to-date.  
+In **line 3**, git isinstalled.
+
+Note the different cases `-C` and `-c` for the commands.
+The difference is: Every change to the file system with `-c` is added to the addon.
+Changes made with `-C` do not get added to the file system.
+`-C` keeps the addon small and reduces the risk that two addons change the same files,
+not knowing of each other.
+
+- [Copy the addon file `git.squashfs` onto the usb device][ia]
 
 ## Install An Addon
 [ia]: #install-an-addon 
