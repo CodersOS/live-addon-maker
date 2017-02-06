@@ -16,7 +16,7 @@ The installation is **just one copy and paste**:
 Examples
 --------
 
-The are examples available in the [examples](examples#readme) folder.
+The are examples available in the [examples][examples] folder.
 
 History & Idea
 --------------
@@ -107,6 +107,8 @@ not knowing of each other.
 
 - [Copy the addon file `git.squashfs` onto the usb device][ia]
 
+If you are interested in more examples, see the [examples][examples] folder and read the scripts.
+
 ## Install An Addon
 [ia]: #install-an-addon 
 
@@ -130,3 +132,8 @@ If not, there might be any folder with a file named `filesystem.squashfs`.
 [ia-add]: #add-addon-to-iso-image
 
 TODO: make a script: `addon-to-iso.sh *.iso new.iso *.squashfs`
+
+
+
+
+[examples]: examples#readme
