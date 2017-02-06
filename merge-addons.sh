@@ -65,6 +65,7 @@ squash() {
   mount "$output" "$output_mount"
   mount_order="$output_mount=ro"
   squashed="true"
+  umount_addons
 }
 
 
