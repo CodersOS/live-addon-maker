@@ -51,16 +51,17 @@ merge() {
     1>&2 echo "Installing squashfs tools"
     apt-get -y install squashfs-tools
   fi
-  i=0
+  local i=0
   local addons=""
   for folder in "$@"; do
-    i="$((i + 1))"
+    local i="$((i + 1))"
     local addon="${_merge_addon}-${i}.squashfs"
+    echo mksquashfs "$folder" "$addon"
     mksquashfs "$folder" "$addon" -noappend 1>"$_output" 2>"$_output" || {
-      output
       echo "ERROR: Could not squash addon"
       return 1
     }
+    output
     local addons="$addons $addon"
   done
   sudo ../merge-addons.sh "$_addon" $addons 2>"$_output" 1>"$_output" || {
