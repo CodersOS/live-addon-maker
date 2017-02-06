@@ -81,6 +81,8 @@ in the `/home/` folder with a small explanation.
 
 - [Copy the addon file `explanation.squashfs` onto the usb device][ia]
 
+Now, when you start the live system, the file should be present.
+
 ### Install Software
 
 There is a software which you want to have installed on the live system.
@@ -97,7 +99,7 @@ In **line 2**, you update the sources of distribution.
 This may be useful if the install command fails because the software was not found.
 The cause is probably that the iso image is some days old the the location of the
 package is not up-to-date.  
-In **line 3**, git isinstalled.
+In **line 3**, git is installed.
 
 Note the different cases `-C` and `-c` for the commands.
 The difference is: Every change to the file system with `-c` is added to the addon.
@@ -106,6 +108,8 @@ Changes made with `-C` do not get added to the file system.
 not knowing of each other.
 
 - [Copy the addon file `git.squashfs` onto the usb device][ia]
+
+Now, when you start the live system, git should be installed.
 
 If you are interested in more examples, see the [examples][examples] folder and read the scripts.
 
