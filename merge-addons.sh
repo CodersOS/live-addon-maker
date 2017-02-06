@@ -25,17 +25,14 @@ if [ -z "$output" ] || [ -z "$1" ]; then
 fi
 
 base="/tmp/`basename \"output\"`-`date '+%N'`"
-source="$base/source/"
+sources="$base/sources/"
+mount_order=""
 
-mkdir -p "$source"
-
-
-if [ -z "`which mksquashfs`" ]; then
-  log "Installing squashfs tools"
-  apt-get -y install squashfs-tools
-fi
+mkdir -p "$sources"
 
 log "Mounting addons."
+
+i=0
 for addon in "$@"; do
   [ -e "$addon" ] || \
     error "Addon not found: $addon"
@@ -44,14 +41,31 @@ for addon in "$@"; do
     [ "`stat -c '%d:%i' \"$addon\"`" != "`stat -c '%d:%i' \"$output\"`" ] || {
     error "Can not use $addon as input because it is also the output."
   }
+  i=$((i + 1))
+  number="`printf '%0*d\n' 3 $i`"
+  dir="$sources/$number-`basename \"$addon\"`"
+  log "preparing addon $addon"
+  mkdir -p "$dir"
   log "Add loopback device http://unix.stackexchange.com/a/198637/27328"
-  losetup -f
-  mount "$addon" "$source" || \
-    error "Could not mount to $source"
-  mksquashfs "$source" "$output" || \
-    error "Could not squash to $output"
-  umount "$source"
+  losetup -f || \
+    error "Please run with sudo"
+  mount "$addon" "$dir" || \
+    error "Could not mount to $dir"
+  mount_order="$dir=ro:$mount_order"
 done
 
+mount_order="${mount_order%:}"
+
+target="$base/output"
+mkdir -p "$target"
+
+mount -t aufs -o dirs="$mount_order" none "$target"
+
+if [ -z "`which mksquashfs`" ]; then
+  apt-get -y install squashfs-tools
+fi
+
+mksquashfs "$target" "$output" -noappend || \
+  error "Could not squash to $output"
 
 
