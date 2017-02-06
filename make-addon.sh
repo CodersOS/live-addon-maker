@@ -193,7 +193,8 @@ find_filesystem() {
 }
 
 mount_root_filesystem() {
-  base="/tmp/`basename \"$iso\"`-`basename \"$addon\"`-`date +%N`"
+  local addon_name="`basename \"$addon\"`"
+  base="/tmp/${addon_name%.*}-`date +%N`"
   iso_mount="$base/iso"
   fs_mount="$base/fs"
   mkdir "$base" || \
