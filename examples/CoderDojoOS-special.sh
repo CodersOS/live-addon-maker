@@ -51,6 +51,7 @@ fi
 addon="z-`basename \"$special\"`.squashfs"
 echo "Addon name: $addon"
 
-./make-addon.sh *.iso "$addon" \
-                -A "$special_folder" "/special/"
-                -c "/special/install.sh"
+sudo ./make-addon.sh *.iso "$addon" \
+                     -A "$special_folder" "/special" \
+                     -c "/special/install.sh" \
+                     -n
