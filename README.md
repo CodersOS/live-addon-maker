@@ -66,11 +66,14 @@ Then, you can download an iso image for which you want to build an addon.
 
 ### Adding Files
 
-We can just add files to the live image.
+We can add files to the live image.
+This makes for a simple addon.
+In the started live image, we want to find a file `README.txt`
+in the `/home/` folder with a small explanation.
 
 - Create a file:
 
-        echo "This is an example file." > README.txt
+        echo "This file was added to this live system." > README.txt
 
 - Create an addon with the file:
 
