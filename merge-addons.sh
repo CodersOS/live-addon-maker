@@ -33,6 +33,8 @@ log "Mounting addons."
 
 i=0
 for addon in "$@"; do
+  [ -e "$addon" ] || \
+    error "Addon not found: $addon"
   # from http://superuser.com/a/196655
   ! [ -f "$output" ] || \
     [ "`stat -c '%d:%i' \"$addon\"`" != "`stat -c '%d:%i' \"$output\"`" ] || {
