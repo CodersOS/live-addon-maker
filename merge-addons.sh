@@ -32,8 +32,46 @@ mkdir -p "$sources"
 
 log "Mounting addons."
 
+umount_addons() {
+  (
+    cd "$sources"
+    for d in *; do
+      umount "$d"
+    done
+  )
+}
+
+temp_output="$base/output.squashfs"
+
+squash() {
+  mount_order="${mount_order%:}"
+
+  target="$base/output"
+  mkdir -p "$target"
+
+  mount -t aufs -o dirs="$mount_order" none "$target"
+
+  if [ -z "`which mksquashfs`" ]; then
+    apt-get -y install squashfs-tools
+  fi
+
+  mksquashfs "$target" "$temp_output" -noappend || \
+    error "Could not squash to $output"
+  umount "$target"
+  mv "$temp_output" "$output"
+
+  output_mount="$base/output-mount"
+  mkdir -p "$output_mount"
+  mount "$output" "$output_mount"
+  mount_order="$output_mount=ro"
+  squashed="true"
+}
+
+
+
 i=0
 for addon in "$@"; do
+  squashed="false"
   [ -e "$addon" ] || \
     error "Addon not found: $addon"
   # from http://superuser.com/a/196655
@@ -49,23 +87,18 @@ for addon in "$@"; do
   log "Add loopback device http://unix.stackexchange.com/a/198637/27328"
   losetup -f || \
     error "Please run with sudo"
+  umount "$addon"
+  # [ "$((i % 3))" != "0" ] && \
   mount "$addon" "$dir" || \
-    error "Could not mount to $dir"
+   { squash && mount "$addon" "$dir" ; } || \
+   error "Could not mount"
   mount_order="$dir=ro:$mount_order"
 done
 
-mount_order="${mount_order%:}"
+[ "$squashed" == "true" ] || squash
 
-target="$base/output"
-mkdir -p "$target"
+umount "$output_mount"
+exit 0
 
-mount -t aufs -o dirs="$mount_order" none "$target"
-
-if [ -z "`which mksquashfs`" ]; then
-  apt-get -y install squashfs-tools
-fi
-
-mksquashfs "$target" "$output" -noappend || \
-  error "Could not squash to $output"
 
 
