@@ -52,6 +52,7 @@ addon="z-`basename \"$special\"`.squashfs"
 echo "Addon name: $addon"
 
 sudo ./make-addon.sh *.iso "$addon" \
+                     -C "apt-get update" \
                      -A "$special_folder" "/special" \
                      -c "/special/install.sh" \
                      -n
