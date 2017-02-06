@@ -96,9 +96,9 @@ add_to_directory() {
     log "Copying content from $source"
     log "                  to $target"
     log "Attempting hard link to save space"
-    cp -rlT "$source" "$target" || {
+    cp -rlTP "$source" "$target" || {
       log "Hard link failed. Copying now"
-      cp -ruT "$source" "$target"
+      cp -ruTP "$source" "$target"
     } || \
       error "Could not copy files"
     log "Done copying"

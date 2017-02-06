@@ -28,6 +28,8 @@ base="/tmp/`basename \"output\"`-`date '+%N'`"
 target="$base/addon"
 temp_output="$base/output"
 
+log "Operating in $base"
+
 mkdir -p "$temp_output"
 
 for addon in "$@"; do
@@ -38,23 +40,29 @@ for addon in "$@"; do
     [ "`stat -c '%d:%i' \"$addon\"`" != "`stat -c '%d:%i' \"$output\"`" ] || {
     error "Can not use $addon as input because it is also the output."
   }
-  [ -d "$target" ] && {
-    rm -r "$target" || \
-      error "Could not remove previous addon."
-  }
+  log "Working with $addon"
   mkdir -p "$target"
   unsquashfs -f -d "$target" "$addon" || \
     error "Could not unsquash"
-  log "Attempting hard link."
-  cp -rlft "$target" "$temp_output" || \
-    cp -rft "$target" "$temp_output" || \
-    error "Could not copy addon"
+  log "Copy $target"
+  log "  to $temp_output"
+  log "Attempting hard link to save space"
+  cp -rflTP "$target" "$temp_output" || {
+    log "Hard link failed. Falling back to copy."
+    cp -rfuTP "$target" "$temp_output" || \
+      error "Could not copy addon"
+  }
+  rm -r "$target" || \
+    error "Could not remove previous addon."
 done
 
-mksquashfs "$target" "$output" -noappend || \
+log "squashing $temp_output"
+log "       to $output"
+log "Content: "`ls "$temp_output"`
+mksquashfs "$temp_output" "$output" -noappend || \
   error "Could not squash"
 
-rm -rf "$base"
+# rm -rf "$base"
 
 exit 0
 
