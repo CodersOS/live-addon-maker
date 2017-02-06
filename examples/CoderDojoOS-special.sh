@@ -10,7 +10,7 @@ url="https://github.com/CoderDojoPotsdam/CoderDojoOS/archive/master.zip"
   mkdir -p addon-specials
   cd addon-specials
   [ -d CoderDojoOS* ] || {
-    wget -q -c "$url" && \
+    wget -c "$url" && \
     unzip master.zip
   } || {
     echo "Could not unzip CoderDojoOS"
