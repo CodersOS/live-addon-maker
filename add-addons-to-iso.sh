@@ -90,9 +90,10 @@ if [ -z "`which mkisofs`" ]; then
   apt-get -y install genisoimage
 fi
 
-log "Creating iso file $output"
-log "             from $new_iso"
+log "Creating iso file $new_iso"
+log "             from $output"
 image_name="`basename \"${output%.*}\"`"
+image_name="${image_name:0:32}"
 
 # see https://github.com/CodersOS/meilix/blob/2bf2f0914ac53a5dbf9a1012a8570988a5ccc4b3/build.sh#L277
 mkisofs -r -V "$image_name" -cache-inodes -J -l \
