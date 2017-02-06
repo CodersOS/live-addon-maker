@@ -18,6 +18,7 @@ help() {
   echo "  Merge the ADDONs into the OUTPUT-ADDON."
 }
 
+
 if [ -z "$output" ] || [ -z "$1" ]; then
   help
   exit 1
@@ -45,6 +46,9 @@ for addon in "$@"; do
   dir="$sources/$number-`basename \"$addon\"`"
   log "preparing addon $addon"
   mkdir -p "$dir"
+  log "Add loopback device http://unix.stackexchange.com/a/198637/27328"
+  losetup -f || \
+    error "Please run with sudo"
   mount "$addon" "$dir" || \
     error "Could not mount to $dir"
   mount_order="$dir=ro:$mount_order"
