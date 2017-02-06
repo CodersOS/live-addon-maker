@@ -50,7 +50,7 @@ relative_filesystem_squashfs="`find_filesystem`"
 [ -n "$relative_filesystem_squashfs" ] || \
   error "did not find filesystem.squashfs in $iso_mount"
 
-relative_addon_folder="`basename \"$relative_filesystem_squashfs\"`"
+relative_addon_folder="`dirname \"$relative_filesystem_squashfs\"`"
 log "Folder for addons: $relative_addon_folder"
 addon_folder="$data/$relative_addon_folder"
 mkdir -p "$addon_folder"
