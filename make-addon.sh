@@ -335,6 +335,7 @@ write_addon() {
   log "Creating $type file $addon"
   if [ "$type" == "squashfs" ]; then
     if [ -z "`which mksquashfs`" ]; then
+      log "Installing squashfs tools"
       apt-get -y install squashfs-tools
     fi
     mksquashfs "$data" "$addon" -noappend -no-progress -ef "$exclude_file" || \
