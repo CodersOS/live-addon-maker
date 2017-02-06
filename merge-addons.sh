@@ -32,6 +32,11 @@ log "Operating in $base"
 
 mkdir -p "$temp_output"
 
+if [ -z "`which mksquashfs`" ]; then
+  log "Installing squashfs tools"
+  apt-get -y install squashfs-tools
+fi
+
 for addon in "$@"; do
   [ -e "$addon" ] || \
     error "Addon not found: $addon"
@@ -62,7 +67,7 @@ log "Content: "`ls "$temp_output"`
 mksquashfs "$temp_output" "$output" -noappend || \
   error "Could not squash"
 
-# rm -rf "$base"
+rm -rf "$base"
 
 exit 0
 
