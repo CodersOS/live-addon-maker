@@ -85,8 +85,7 @@ for addon in "$@"; do
   log "preparing addon $addon"
   mkdir -p "$dir"
   log "Add loopback device http://unix.stackexchange.com/a/198637/27328"
-  losetup -f || \
-    error "Please run with sudo"
+  losetup -f || log "No more free loop devices."
   umount "$addon"
   # [ "$((i % 3))" != "0" ] && \
   mount "$addon" "$dir" || \
