@@ -1,6 +1,7 @@
 #!/bin/bash
 
 CLEAN=true
+HARDLINK=true
 
 parse_required_parameters() {
   iso="$1"
@@ -43,6 +44,9 @@ help() {
 
    -n --no-clean
      Do not clean the files and directories used for this.
+
+   -H --no-hardlink
+     Do not hardlink files.
 
    Each option is executed in the order it is passed to the script.
    If you do --map and then --command, you can use what you mapped.
@@ -96,7 +100,7 @@ add_to_directory() {
     log "Copying content from $source"
     log "                  to $target"
     log "Attempting hard link to save space"
-    cp -rlTP "$source" "$target" || {
+    [ "$HARDLINK" == "true" ] && cp -rlTP "$source" "$target" || {
       log "Hard link failed. Copying now"
       cp -ruTP "$source" "$target"
     } || \
@@ -104,11 +108,11 @@ add_to_directory() {
     log "Done copying"
   else
     log "Attempting hard link to save space"
-    if ! ln -v -t "$target" "$source"; then
+    [ "$HARDLINK" == "true" ] && ln -v -t "$target" "$source" || {
       log "Hard link failed. Copying."
       cp -v -t "$target" "$source" || \
         error "Could not copy file"
-    fi
+    }
   fi
 }
 
@@ -376,6 +380,9 @@ parse_options() {
       -n|--no-clean)
         log "No cleanup"
         CLEAN=false ;;
+      -H|--no-hardlink)
+        log "No hardlink"
+        HARDLINK=false ;;
       *)
         help
         error "Invalid option \"$option\"." ;;
