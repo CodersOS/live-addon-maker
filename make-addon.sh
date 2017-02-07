@@ -347,7 +347,7 @@ write_addon() {
   else
     error "Unrecognized type \"$type\"."
   fi
-  log "Output: $output"
+  log "Output: $addon"
 }
 
 log_call() {
