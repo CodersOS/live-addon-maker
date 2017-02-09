@@ -135,7 +135,7 @@ If not, there might be any folder with a file named `filesystem.squashfs`.
 ### Add Addon To Iso Image
 [ia-add]: #add-addon-to-iso-image
 
-TODO: make a script: `addon-to-iso.sh *.iso new.iso *.squashfs`
+TODO: describe add-addons-to-iso.sh
 
 
 
