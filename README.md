@@ -13,6 +13,11 @@ The installation is **just one copy and paste**:
 1. Copy an [example `.squashfs` file](examples) into the `casper` folder or wherever `filesystem.squashfs` is.
 2. Boot and you can start the Python Shell.
 
+Documentation
+-------------
+
+There is a [paper about the packground][paper] and how the live addon maker works.
+
 Examples
 --------
 
@@ -141,3 +146,4 @@ TODO: describe add-addons-to-iso.sh
 
 
 [examples]: examples#readme
+[paper]: https://github.com/CodersOS/live-addon-maker-paper/#readme
